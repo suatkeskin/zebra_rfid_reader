@@ -6,7 +6,6 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 
-import com.zebra.plugins.rfid.R;
 import com.zebra.rfid.api3.ENUM_TRANSPORT;
 import com.zebra.rfid.api3.ENUM_TRIGGER_MODE;
 import com.zebra.rfid.api3.HANDHELD_TRIGGER_EVENT_TYPE;
@@ -73,21 +72,16 @@ public class RFIDReaderDelegate implements RfidEventsListener {
     }
 
     public boolean connect() throws InvalidUsageException, OperationFailureException {
-        Log.d(LOG_TAG, "Inside connect 1...");
         if (reader != null && reader.isConnected()) {
-            Log.d(LOG_TAG, "Inside connect 2...");
             return true;
         }
 
-        Log.d(LOG_TAG, "Inside connect 3...");
         final List<ReaderDevice> availableReaders = getAvailableReaders();
         if (availableReaders.isEmpty()) {
-            Log.d(LOG_TAG, "Inside connect 4...");
             disposeReader();
             return false;
         }
 
-        Log.d(LOG_TAG, "Inside connect 5...");
         final ReaderDevice device = availableReaders.iterator().next();
         reader = device.getRFIDReader();
         if (!reader.isConnected()) {
@@ -99,6 +93,7 @@ public class RFIDReaderDelegate implements RfidEventsListener {
 
     @Override
     public void eventReadNotify(RfidReadEvents e) {
+        Log.d(LOG_TAG, String.format("Tag Id: %s", e.getReadEventData().tagData.getTagID()));
         dartMessenger.sendRfidTagReadEvent(e.getReadEventData().tagData.getTagID());
     }
 
@@ -111,12 +106,11 @@ public class RFIDReaderDelegate implements RfidEventsListener {
                 backgroundTaskRunner.runInBackground(() -> {
                     try {
                         reader.Actions.Inventory.perform();
-                        Log.d(LOG_TAG, "Perform reader inventory action...");
                     } catch (InvalidUsageException e) {
                         Log.e(LOG_TAG, "Can not perform reader inventory action...", e);
                         dartMessenger.sendReaderErrorEvent(String.format("%s%s", e.getInfo(), e.getVendorMessage()));
                     } catch (OperationFailureException e) {
-                        Log.d(LOG_TAG, String.format("OperationFailureException occurred. %d: %s", e.getResults().getValue(), e.getVendorMessage()));
+                        Log.e(LOG_TAG, String.format("OperationFailureException occurred. %d: %s", e.getResults().getValue(), e.getVendorMessage()), e);
                         dartMessenger.sendReaderErrorEvent(e.getResults().getValue());
                     }
                     return null;
@@ -127,12 +121,11 @@ public class RFIDReaderDelegate implements RfidEventsListener {
                 backgroundTaskRunner.runInBackground(() -> {
                     try {
                         reader.Actions.Inventory.stop();
-                        Log.d(LOG_TAG, "Stop reader inventory action...");
                     } catch (InvalidUsageException e) {
                         Log.e(LOG_TAG, "Can not stop reader inventory action...", e);
                         dartMessenger.sendReaderErrorEvent(String.format("%s%s", e.getInfo(), e.getVendorMessage()));
                     } catch (OperationFailureException e) {
-                        Log.d(LOG_TAG, String.format("OperationFailureException occurred. %d: %s", e.getResults().getValue(), e.getVendorMessage()));
+                        Log.e(LOG_TAG, String.format("OperationFailureException occurred. %d: %s", e.getResults().getValue(), e.getVendorMessage()), e);
                         dartMessenger.sendReaderErrorEvent(e.getResults().getValue());
                     }
                     return null;
@@ -177,8 +170,6 @@ public class RFIDReaderDelegate implements RfidEventsListener {
 
 
             reader.Events.addEventsListener(this);
-            Log.d(LOG_TAG, "Add event listener...");
-
             // HH event
             reader.Events.setHandheldEvent(true);
             // tag event with tag data
