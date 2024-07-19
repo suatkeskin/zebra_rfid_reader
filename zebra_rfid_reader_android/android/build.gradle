@@ -1,4 +1,4 @@
-group = "com.zebra.rfid.reader"
+group = "com.zebra.plugins.rfid"
 version = "1.0"
 
 buildscript {
@@ -23,7 +23,7 @@ apply plugin: "com.android.library"
 
 android {
     if (project.android.hasProperty("namespace")) {
-        namespace = "com.zebra.rfid.reader"
+        namespace = "com.zebra.plugins.rfid"
     }
 
     compileSdk = 34

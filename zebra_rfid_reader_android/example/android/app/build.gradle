@@ -23,7 +23,7 @@ if (flutterVersionName == null) {
 }
 
 android {
-    namespace 'com.zebra.rfid.reader.android.example'
+    namespace 'com.zebra.plugins.rfid.android.example'
     compileSdk 34
 
     sourceSets {
@@ -31,7 +31,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.zebra.rfid.reader.android.example"
+        applicationId "com.zebra.plugins.rfid.android.example"
         minSdkVersion flutter.minSdkVersion
         targetSdkVersion 34
         minSdkVersion 26

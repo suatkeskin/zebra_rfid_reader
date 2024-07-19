@@ -12,13 +12,14 @@ flutter:
     implements: zebra_rfid_reader
     platforms:
       android:
-        package: com.zebra.rfid.reader
+        package: com.zebra.plugins.rfid
         pluginClass: ZebraRfidReaderPlugin
         dartPluginClass: ZebraRfidReaderAndroid
 
 dependencies:
   flutter:
     sdk: flutter
+  stream_transform: ^2.1.0
   #  zebra_rfid_reader_platform_interface: ^1.0.0
   zebra_rfid_reader_platform_interface:
     path: ../zebra_rfid_reader_platform_interface
@@ -32,3 +33,7 @@ dev_dependencies:
     sdk: flutter
   mockito: ^5.4.4
   pigeon: ^20.0.2
+
+topics:
+  - zebra
+  - rfid mc3300x

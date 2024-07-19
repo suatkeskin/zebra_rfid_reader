@@ -16,7 +16,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
+  stream_transform: ^2.1.0
+  permission_handler: ^11.3.1
   zebra_rfid_reader:
     # When depending on this package from a real application you should use:
     #   zebra_rfid_reader: ^x.y.z

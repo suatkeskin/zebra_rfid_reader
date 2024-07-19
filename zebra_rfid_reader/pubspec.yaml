@@ -29,4 +29,4 @@ dev_dependencies:
 
 topics:
   - zebra
-  - rfid
+  - rfid mc3300x
