@@ -24,7 +24,7 @@ if (flutterVersionName == null) {
 
 android {
     namespace 'com.zebra.plugins.rfid.android.example'
-    compileSdk 34
+    compileSdk 36
 
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
@@ -33,7 +33,7 @@ android {
     defaultConfig {
         applicationId "com.zebra.plugins.rfid.android.example"
         minSdkVersion flutter.minSdkVersion
-        targetSdkVersion 34
+        targetSdkVersion 36
         minSdkVersion 26
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
