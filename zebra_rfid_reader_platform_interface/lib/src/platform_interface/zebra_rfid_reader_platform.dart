@@ -8,48 +8,58 @@ import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 import 'package:zebra_rfid_reader_platform_interface/src/events/rfid_reader_event.dart';
 import 'package:zebra_rfid_reader_platform_interface/src/types/types.dart';
 
+/// The interface that implementations of rfid reader must implement.
+///
+/// Platform implementations should extend this class rather than implement it as `reader`
+/// does not consider newly added methods to be breaking changes. Extending this class
+/// (using `extends`) ensures that the subclass will get the default implementation, while
+/// platform implementations that `implements` this interface will be broken by newly added
+/// [ZebraRfidReaderPlatform] methods.
 abstract class ZebraRfidReaderPlatform extends PlatformInterface {
+  /// Constructs a ZebraRfidReaderPlatform.
   ZebraRfidReaderPlatform() : super(token: _token);
 
   static final Object _token = Object();
 
   static ZebraRfidReaderPlatform _instance = _PlaceholderImplementation();
 
+  /// The default instance of [ZebraRfidReaderPlatform] to use.
+  ///
+  /// Defaults to [MethodChannelZebraRfidReader].
   static ZebraRfidReaderPlatform get instance => _instance;
 
+  /// Platform-specific plugins should set this with their own platform-specific
+  /// class that extends [ZebraRfidReaderPlatform] when they register themselves.
   static set instance(ZebraRfidReaderPlatform instance) {
     PlatformInterface.verify(instance, _token);
     _instance = instance;
   }
 
-  Future<List<RfidReader>> availableRfidReaders() {
-    throw UnimplementedError('availableReaders() is not implemented.');
+  /// Initializes the reader on the device.
+  ///
+  /// [autoConnect] is used to immediately connect reader after init.
+  Future<void> init(RfidReaderInitParameters params) {
+    throw UnimplementedError('init() has not been implemented.');
   }
 
-  Future<bool> connect() {
+  /// Connects to reader.
+  Future<void> connect() {
     throw UnimplementedError('connect() has not been implemented.');
   }
 
-  Future<bool> disconnect() {
+  /// Disconnects from reader.
+  Future<void> disconnect() {
     throw UnimplementedError('disconnect() is not implemented.');
   }
 
-  Stream<HandheldTriggerPressedEvent> onHandheldTriggerPressedEvent() {
-    throw UnimplementedError(
-        'onReaderHandheldTriggerPressedEvent() is not implemented.');
+  /// The scanner status changed.
+  Stream<ScannerStatusEvent> onScannerStatusEvent() {
+    throw UnimplementedError('onScannerStatusEvent() is not implemented.');
   }
 
-  Stream<HandheldTriggerReleasedEvent> onHandheldTriggerReleasedEvent() {
-    throw UnimplementedError(
-        'onHandheldTriggerReleasedEvent() is not implemented.');
-  }
-
-  Stream<RfidTagReadEvent> onRfidTagReadEvent() {
-    throw UnimplementedError('onTagRead() is not implemented.');
-  }
-
-  Stream<ReaderErrorEvent> onReaderError() {
-    throw UnimplementedError('onReaderError() is not implemented.');
+  /// The reader read a new rfid.
+  Stream<RfidReadEvent> onRfidReadEvent() {
+    throw UnimplementedError('onRfidReadEvent() is not implemented.');
   }
 }
 

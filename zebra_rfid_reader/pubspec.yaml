@@ -4,7 +4,7 @@ version: 1.0.0
 
 environment:
   sdk: '>=3.4.3 <4.0.0'
-  flutter: '>=3.3.0'
+  flutter: '>=3.22.0'
 
 flutter:
   plugin:
@@ -21,7 +21,7 @@ dependencies:
     path: ../zebra_rfid_reader_platform_interface
 
 dev_dependencies:
-  flutter_lints: ^3.0.0
+  flutter_lints: ^6.0.0
   flutter_test:
     sdk: flutter
   integration_test:
@@ -29,4 +29,5 @@ dev_dependencies:
 
 topics:
   - zebra
-  - rfid mc3300x
+  - rfid
+  - mc3300x

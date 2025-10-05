@@ -2,73 +2,102 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
+import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
+import 'package:zebra_rfid_reader_platform_interface/src/types/types.dart';
 
+/// Generic Event coming from the native side of Reader.
+///
+/// This class is used as a base class for all the events that might be
+/// triggered from a Reader, but it is never used directly as an event type.
+///
+/// Do NOT instantiate new events like `ReaderEvent()` directly,
+/// use a specific class instead:
+///
+/// Do `class NewEvent extend ReaderEvent` when creating your own events.
+/// See below for examples: `ScannerStatusEvent`, `RfidReadEvent`...
+/// These events are more semantic and more pleasant to use than raw generics.
+/// They can be (and in fact, are) filtered by the `instanceof`-operator.
 @immutable
 abstract class ReaderEvent {}
 
-class HandheldTriggerPressedEvent extends ReaderEvent {}
-
-class HandheldTriggerReleasedEvent extends ReaderEvent {}
-
-class RfidTagReadEvent extends ReaderEvent {
-  RfidTagReadEvent({
-    required this.tagId,
+/// An event fired when the scanner status has changed.
+class ScannerStatusEvent extends ReaderEvent {
+  /// Build a ScannerStatusEvent event triggered from the reader.
+  ///
+  /// The `status` represents the rfid scanner status.
+  ScannerStatusEvent({
+    required this.status,
   });
 
-  late final String tagId;
+  /// The scanner status enum.
+  late final ScannerStatus status;
 
-  RfidTagReadEvent.fromJson(Map<String, dynamic> json) {
-    tagId = json['tagId'];
+  /// Converts the supplied [Map] to an instance of the [ScannerStatusEvent]
+  /// class.
+  ScannerStatusEvent.fromJson(Map<String, dynamic> json) {
+    status = ScannerStatus.values.firstWhereOrNull(
+            (d) => d.name == (json['status'] as String).toLowerCase()) ??
+        ScannerStatus.disabled;
   }
 
-  Map<String, dynamic> toJson() {
-    final _data = <String, dynamic>{};
-    _data['tagId'] = tagId;
-    return _data;
-  }
-
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      super == other &&
-          other is RfidTagReadEvent &&
-          runtimeType == other.runtimeType &&
-          tagId == other.tagId;
-
-  @override
-  int get hashCode => tagId.hashCode;
-}
-
-class ReaderErrorEvent extends ReaderEvent {
-  ReaderErrorEvent({
-    required this.code,
-    required this.message,
-  });
-
-  late final int code;
-  late final String message;
-
-  ReaderErrorEvent.fromJson(Map<String, dynamic> json) {
-    code = json['code'];
-    message = json['message'];
-  }
-
+  /// Converts the [ScannerStatusEvent] instance into a [Map] instance that
+  /// can be serialized to JSON.
   Map<String, dynamic> toJson() {
     final data = <String, dynamic>{};
-    data['code'] = code;
-    data['message'] = message;
+    data['status'] = status.name;
     return data;
   }
 
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      super == other &&
-          other is ReaderErrorEvent &&
-          runtimeType == other.runtimeType &&
-          message == other.message;
+          other is ScannerStatusEvent &&
+              runtimeType == other.runtimeType &&
+              status == other.status;
 
   @override
-  int get hashCode => Object.hash(super.hashCode, message);
+  int get hashCode => status.hashCode;
+}
+
+/// An event fired when a new rfid is read.
+class RfidReadEvent extends ReaderEvent {
+  /// Build a RfidReadEvent event triggered from the reader.
+  ///
+  /// The `rfid` represents the tag data and type.
+  RfidReadEvent({
+    required this.rfid,
+  });
+
+  /// The rfid data.
+  late final RfidData rfid;
+
+  /// Converts the supplied [Map] to an instance of the [RfidReadEvent]
+  /// class.
+  RfidReadEvent.fromJson(Map<String, dynamic> json) {
+    rfid = RfidData.fromJson(json['rfid']);
+  }
+
+  /// Converts the [RfidReadEvent] instance into a [Map] instance that
+  /// can be serialized to JSON.
+  Map<String, dynamic> toJson() {
+    final data = <String, dynamic>{};
+    data['rfid'] = rfid.toJson();
+    return data;
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+          other is RfidReadEvent &&
+              runtimeType == other.runtimeType &&
+              rfid == other.rfid;
+
+  @override
+  int get hashCode => rfid.hashCode;
+
+  @override
+  String toString() {
+    return 'RfidReadEvent{rfid: $rfid}';
+  }
 }

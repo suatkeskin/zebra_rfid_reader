@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/foundation.dart' show visibleForTesting;
 import 'package:flutter/services.dart';
@@ -23,7 +24,7 @@ class ZebraRfidReaderAndroid extends ZebraRfidReaderPlatform {
   }
 
   late final StreamController<ReaderEvent> _readerEventStreamController =
-      _createDeviceEventStreamController();
+  _createDeviceEventStreamController();
 
   StreamController<ReaderEvent> _createDeviceEventStreamController() {
     const MethodChannel channel = MethodChannel("plugins.zebra.com/rfid");
@@ -34,67 +35,50 @@ class ZebraRfidReaderAndroid extends ZebraRfidReaderPlatform {
   Stream<ReaderEvent> _readerEvents() => _readerEventStreamController.stream;
 
   @override
-  Future<List<RfidReader>> availableRfidReaders() async {
-    return _api.availableReaders().then(_mapRfidReader);
+  Future<void> init(RfidReaderInitParameters params) {
+    return _api.init(InitParams(
+      autoConnect: params.autoConnect,
+    ));
   }
 
   @override
-  Future<bool> connect() async {
+  Future<void> connect() {
     return _api.connect();
   }
 
   @override
-  Future<bool> disconnect() async {
+  Future<void> disconnect() {
     return _api.disconnect();
   }
 
   @override
-  Stream<HandheldTriggerPressedEvent> onHandheldTriggerPressedEvent() {
-    return _readerEvents().whereType<HandheldTriggerPressedEvent>();
+  Stream<ScannerStatusEvent> onScannerStatusEvent() {
+    return _readerEvents().whereType<ScannerStatusEvent>();
   }
 
   @override
-  Stream<HandheldTriggerReleasedEvent> onHandheldTriggerReleasedEvent() {
-    return _readerEvents().whereType<HandheldTriggerReleasedEvent>();
-  }
-
-  @override
-  Stream<RfidTagReadEvent> onRfidTagReadEvent() {
-    return _readerEvents().whereType<RfidTagReadEvent>();
-  }
-
-  @override
-  Stream<ReaderErrorEvent> onReaderError() {
-    return _readerEvents().whereType<ReaderErrorEvent>();
+  Stream<RfidReadEvent> onRfidReadEvent() {
+    return _readerEvents().whereType<RfidReadEvent>();
   }
 
   @visibleForTesting
   Future<dynamic> handleReaderMethodCall(MethodCall call) async {
     final Map<String, dynamic> arguments = _getArgumentDictionary(call);
     switch (call.method) {
-      case 'error':
-        _readerEventStreamController.add(ReaderErrorEvent(
-          code: arguments['code'],
-          message: arguments['message'],
-        ));
-      case 'handheld_trigger_pressed':
-        _readerEventStreamController.add(HandheldTriggerPressedEvent());
-      case 'handheld_trigger_released':
-        _readerEventStreamController.add(HandheldTriggerReleasedEvent());
-      case 'rfid_tag_read':
-        _readerEventStreamController.add(RfidTagReadEvent(
-          tagId: arguments['tagId'],
-        ));
+      case 'scanner_status':
+        _readerEventStreamController.add(
+          ScannerStatusEvent.fromJson(arguments),
+        );
+      case 'rfid_read':
+        _readerEventStreamController.add(
+          RfidReadEvent.fromJson(arguments),
+        );
       default:
         throw MissingPluginException();
     }
   }
 
-  Map<String, Object?> _getArgumentDictionary(MethodCall call) {
-    return (call.arguments as Map<Object?, Object?>).cast<String, Object?>();
-  }
-
-  List<RfidReader> _mapRfidReader(List<dynamic> data) {
-    return data.map((d) => RfidReader(name: d['name']! as String)).toList();
+  Map<String, dynamic> _getArgumentDictionary(MethodCall call) {
+    return jsonDecode(jsonEncode(call.arguments));
   }
 }

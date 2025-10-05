@@ -36,8 +36,7 @@ class _MyPageState extends State<MyPage> {
   Set<String> _tags = {};
   bool _connected = false;
   late StreamSubscription<dynamic> _tagSubscription;
-  late StreamSubscription<dynamic> _triggerPressSubscription;
-  late StreamSubscription<dynamic> _errorSubscription;
+  late StreamSubscription<dynamic> _statusSubscription;
 
   @override
   void initState() {
@@ -50,28 +49,21 @@ class _MyPageState extends State<MyPage> {
   @override
   void dispose() {
     _tagSubscription.cancel();
-    _triggerPressSubscription.cancel();
-    _errorSubscription.cancel();
+    _statusSubscription.cancel();
     super.dispose();
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> initPlatformState() async {
-    _tagSubscription = _platform.onRfidTagReadEvent().listen((event) {
+    _tagSubscription = _platform.onRfidReadEvent().listen((event) {
       setState(() {
-        _tags.add(event.tagId);
+        _tags.add(event.rfid.data);
       });
     });
-    _triggerPressSubscription =
-        _platform.onHandheldTriggerPressedEvent().listen((event) {
+    _statusSubscription = _platform.onScannerStatusEvent().listen((event) {
       setState(() {
-        _tags = {};
+        _connected = event.status.isConnected;
       });
-    });
-    _errorSubscription = _platform.onReaderError().listen((event) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(event.message),
-      ));
     });
   }
 
@@ -95,21 +87,19 @@ class _MyPageState extends State<MyPage> {
           child: OutlinedButton(
             onPressed: () async {
               if (_connected) {
-                final result = await _platform.disconnect();
+                await _platform.disconnect();
                 setState(() {
-                  _connected = result;
                   _tags = {};
                 });
               } else {
-                final result = await _platform.connect();
+                await _platform.connect();
                 setState(() {
-                  _connected = result;
                   _tags = {};
                 });
               }
             },
             child:
-                _connected ? const Text('Disconnect') : const Text('Connect'),
+            _connected ? const Text('Disconnect') : const Text('Connect'),
           ),
         ),
       ],

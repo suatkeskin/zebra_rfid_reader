@@ -4,6 +4,14 @@
 
 import 'package:pigeon/pigeon.dart';
 
+class InitParams {
+  const InitParams({
+    this.autoConnect = false,
+  });
+
+  final bool autoConnect;
+}
+
 class RfidReaderDto {
   const RfidReaderDto({
     required this.name,
@@ -20,12 +28,9 @@ class RfidReaderDto {
 ))
 @HostApi()
 abstract class ZebraRfidReaderApi {
-  @async
-  List<RfidReaderDto> availableReaders();
+  void init(InitParams params);
 
-  @async
-  bool connect();
+  void connect();
 
-  @async
-  bool disconnect();
+  void disconnect();
 }

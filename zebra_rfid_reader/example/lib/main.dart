@@ -2,11 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:zebra_rfid_reader/zebra_rfid_reader.dart';
-import 'package:zebra_rfid_reader_example/src/util/permission_manager.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  PermissionManager.instance.checkAndRequestBluetoothPermission();
   runApp(const MyApp());
 }
 
@@ -36,11 +34,10 @@ class MyPage extends StatefulWidget {
 class _MyPageState extends State<MyPage> {
   final _reader = ZebraRfidReader();
 
-  Set<String> _tags = {};
+  Set<String> _rfids = {};
   bool _connected = false;
-  late StreamSubscription<dynamic> _tagSubscription;
-  late StreamSubscription<dynamic> _triggerPressSubscription;
-  late StreamSubscription<dynamic> _errorSubscription;
+  late StreamSubscription<dynamic> _rfidSubscription;
+  late StreamSubscription<dynamic> _statusSubscription;
 
   @override
   void initState() {
@@ -52,29 +49,23 @@ class _MyPageState extends State<MyPage> {
 
   @override
   void dispose() {
-    _tagSubscription.cancel();
-    _triggerPressSubscription.cancel();
-    _errorSubscription.cancel();
+    _rfidSubscription.cancel();
+    _statusSubscription.cancel();
     super.dispose();
   }
 
   // Platform messages are asynchronous, so we initialize in an async method.
   Future<void> initPlatformState() async {
-    _tagSubscription = _reader.onRfidTagReadEvent().listen((event) {
+    await _reader.init(RfidReaderInitParameters(autoConnect: true));
+    _rfidSubscription = _reader.onRfidReadEvent().listen((event) {
       setState(() {
-        _tags.add(event.tagId);
+        _rfids.add(event.rfid.data);
       });
     });
-    _triggerPressSubscription =
-        _reader.onHandheldTriggerPressedEvent().listen((event) {
+    _statusSubscription = _reader.onScannerStatusEvent().listen((event) {
       setState(() {
-        _tags = {};
+        _connected = event.status.isConnected;
       });
-    });
-    _errorSubscription = _reader.onReaderError().listen((event) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(event.message),
-      ));
     });
   }
 
@@ -85,10 +76,10 @@ class _MyPageState extends State<MyPage> {
         Padding(
           padding: const EdgeInsets.only(bottom: 60.0),
           child: ListView.builder(
-            itemCount: _tags.length,
+            itemCount: _rfids.length,
             itemBuilder: (context, index) {
               return ListTile(
-                title: Text(_tags.toList()[index]),
+                title: Text(_rfids.toList()[index]),
               );
             },
           ),
@@ -98,21 +89,19 @@ class _MyPageState extends State<MyPage> {
           child: OutlinedButton(
             onPressed: () async {
               if (_connected) {
-                final result = await _reader.disconnect();
+                await _reader.disconnect();
                 setState(() {
-                  _connected = result;
-                  _tags = {};
+                  _rfids = {};
                 });
               } else {
-                final result = await _reader.connect();
+                await _reader.connect();
                 setState(() {
-                  _connected = result;
-                  _tags = {};
+                  _rfids = {};
                 });
               }
             },
             child:
-                _connected ? const Text('Disconnect') : const Text('Connect'),
+            _connected ? const Text('Disconnect') : const Text('Connect'),
           ),
         ),
       ],

@@ -20,6 +20,7 @@ import com.zebra.rfid.api3.RfidStatusEvents;
 import com.zebra.rfid.api3.START_TRIGGER_TYPE;
 import com.zebra.rfid.api3.STATUS_EVENT_TYPE;
 import com.zebra.rfid.api3.STOP_TRIGGER_TYPE;
+import com.zebra.rfid.api3.TagData;
 import com.zebra.rfid.api3.TriggerInfo;
 
 import java.util.Collections;
@@ -50,51 +51,69 @@ public class RFIDReaderDelegate implements RfidEventsListener {
         readers = null;
     }
 
-    public boolean disposeReader() {
+    public void disposeReader() {
         if (reader == null || !reader.isConnected()) {
-            return true;
+            dartMessenger.sendScannerStatusEvent(ScannerStatus.DISCONNECTED);
+
         }
 
         try {
             reader.Events.removeEventsListener(this);
             reader.disconnect();
-            return reader.isConnected();
-        } catch (Exception e) {
+            if (reader.isConnected()) {
+                dartMessenger.sendScannerStatusEvent(ScannerStatus.CONNECTED);
+            } else {
+                reader = null;
+                dartMessenger.sendScannerStatusEvent(ScannerStatus.DISCONNECTED);
+            }
+        } catch (InvalidUsageException | OperationFailureException e) {
             Log.e(LOG_TAG, "Can not disconnect from reader...", e);
             dartMessenger.sendReaderErrorEvent(R.string.rfid_reader_disconnect_failed);
-            return false;
         }
     }
 
-    public List<ReaderDevice> getAvailableReaders() throws InvalidUsageException {
-        final List<ReaderDevice> readers = this.readers.GetAvailableRFIDReaderList();
+    public List<ReaderDevice> getAvailableReaders() {
+        final List<ReaderDevice> readers;
+        try {
+            readers = this.readers.GetAvailableRFIDReaderList();
+        } catch (InvalidUsageException e) {
+            Log.e(LOG_TAG, "Could not get available readers...", e);
+            return Collections.emptyList();
+        }
         return readers == null ? Collections.emptyList() : readers;
     }
 
-    public boolean connect() throws InvalidUsageException, OperationFailureException {
+    public void connect() {
         if (reader != null && reader.isConnected()) {
-            return true;
+            dartMessenger.sendScannerStatusEvent(ScannerStatus.CONNECTED);
+            return;
         }
 
         final List<ReaderDevice> availableReaders = getAvailableReaders();
         if (availableReaders.isEmpty()) {
             disposeReader();
-            return false;
+            dartMessenger.sendScannerStatusEvent(ScannerStatus.DISABLED);
         }
 
         final ReaderDevice device = availableReaders.iterator().next();
         reader = device.getRFIDReader();
         if (!reader.isConnected()) {
-            reader.connect();
+            try {
+                reader.connect();
+            } catch (InvalidUsageException | OperationFailureException e) {
+                Log.e(LOG_TAG, "Could not connect reader...", e);
+                throw new RuntimeException(e);
+            }
         }
         configureReader();
-        return true;
+        dartMessenger.sendScannerStatusEvent(ScannerStatus.CONNECTED);
     }
 
     @Override
     public void eventReadNotify(RfidReadEvents e) {
-        Log.d(LOG_TAG, String.format("Tag Id: %s", e.getReadEventData().tagData.getTagID()));
-        dartMessenger.sendRfidTagReadEvent(e.getReadEventData().tagData.getTagID());
+        final TagData tagData = e.getReadEventData().tagData;
+        Log.d(LOG_TAG, String.format("Tag Id: %s", tagData.getTagID()));
+        dartMessenger.sendRfidReadEvent("", tagData.getTagID());
     }
 
     @Override
@@ -102,7 +121,7 @@ public class RFIDReaderDelegate implements RfidEventsListener {
         Log.d(LOG_TAG, "Status Notification: " + rfidStatusEvents.StatusEventData.getStatusEventType());
         if (rfidStatusEvents.StatusEventData.getStatusEventType() == STATUS_EVENT_TYPE.HANDHELD_TRIGGER_EVENT) {
             if (rfidStatusEvents.StatusEventData.HandheldTriggerEventData.getHandheldEvent() == HANDHELD_TRIGGER_EVENT_TYPE.HANDHELD_TRIGGER_PRESSED) {
-                dartMessenger.sendHandheldTriggerPressedEvent();
+                dartMessenger.sendScannerStatusEvent(ScannerStatus.SCANNING);
                 backgroundTaskRunner.runInBackground(() -> {
                     try {
                         reader.Actions.Inventory.perform();
@@ -117,7 +136,7 @@ public class RFIDReaderDelegate implements RfidEventsListener {
                 });
             }
             if (rfidStatusEvents.StatusEventData.HandheldTriggerEventData.getHandheldEvent() == HANDHELD_TRIGGER_EVENT_TYPE.HANDHELD_TRIGGER_RELEASED) {
-                dartMessenger.sendHandheldTriggerReleasedEvent();
+                dartMessenger.sendScannerStatusEvent(ScannerStatus.IDLE);
                 backgroundTaskRunner.runInBackground(() -> {
                     try {
                         reader.Actions.Inventory.stop();

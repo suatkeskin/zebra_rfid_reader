@@ -6,8 +6,6 @@ package com.zebra.plugins.rfid;
 
 import android.content.Context;
 import android.os.Handler;
-import android.os.Looper;
-import android.text.TextUtils;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -15,7 +13,6 @@ import androidx.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Map;
 
-import io.flutter.plugin.common.BinaryMessenger;
 import io.flutter.plugin.common.MethodChannel;
 
 /**
@@ -38,17 +35,13 @@ public class DartMessenger {
          */
         ERROR("error"),
         /**
-         * Indicates that the handheld trigger pressed.
+         * Indicates that the new rfid tag read occurred.
          */
-        HANDHELD_TRIGGER_PRESSED("handheld_trigger_pressed"),
-        /**
-         * Indicates that the handheld trigger released.
-         */
-        HANDHELD_TRIGGER_RELEASED("handheld_trigger_released"),
+        RFID_READ("rfid_read"),
         /**
          * Indicates that the new rfid tag read occurred.
          */
-        RFID_TAG_READ("rfid_tag_read");
+        SCANNER_STATUS("scanner_status");
 
         final String method;
 
@@ -64,8 +57,6 @@ public class DartMessenger {
 
     /**
      * Creates a new instance of the {@link DartMessenger} class.
-     *
-     * @param messenger is the {@link BinaryMessenger} that is used to communicate with Flutter.
      */
     DartMessenger(@NonNull Context context, @NonNull MethodChannel readerChannel, @NonNull Handler handler) {
         this.context = context;
@@ -74,31 +65,33 @@ public class DartMessenger {
     }
 
     /**
-     * Sends a message to the Flutter client informing that the handheld trigger pressed.
-     */
-    public void sendHandheldTriggerPressedEvent() {
-        this.send(ReaderEventType.HANDHELD_TRIGGER_PRESSED);
-    }
-
-    /**
-     * Sends a message to the Flutter client informing that the handheld trigger released.
-     */
-    public void sendHandheldTriggerReleasedEvent() {
-        this.send(ReaderEventType.HANDHELD_TRIGGER_RELEASED);
-    }
-
-    /**
      * Sends a message to the Flutter client informing that the new tag read.
      */
-    public void sendRfidTagReadEvent(String tagId) {
-        assert (tagId != null);
-        send(ReaderEventType.RFID_TAG_READ,
+    public void sendRfidReadEvent(String type, String data) {
+        send(ReaderEventType.RFID_READ,
                 new HashMap<String, Object>() {
                     {
-                        put("tagId", tagId);
+                        put("rfid", new HashMap<String, Object>() {
+                            {
+                                put("type", type);
+                                put("data", data);
+                            }
+                        });
                     }
                 }
         );
+    }
+
+    /**
+     * Sends a message to the Flutter client informing that the scanner status changed.
+     */
+    public void sendScannerStatusEvent(ScannerStatus scannerStatus) {
+        this.send(ReaderEventType.SCANNER_STATUS,
+                new HashMap<String, Object>() {
+                    {
+                        put("status", scannerStatus.name());
+                    }
+                });
     }
 
     /**
@@ -112,8 +105,7 @@ public class DartMessenger {
                 ReaderEventType.ERROR,
                 new HashMap<String, Object>() {
                     {
-                        put("code", code);
-                        put("message", ErrorUtils.getErrorMessage(context, code));
+                        put("message", context.getString(code));
                     }
                 }
         );
@@ -130,7 +122,7 @@ public class DartMessenger {
                 ReaderEventType.ERROR,
                 new HashMap<String, Object>() {
                     {
-                        if (!TextUtils.isEmpty(description)) put("description", description);
+                        put("message", description);
                     }
                 }
         );

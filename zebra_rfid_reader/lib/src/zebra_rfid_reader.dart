@@ -6,36 +6,28 @@ import 'dart:async';
 
 import 'package:zebra_rfid_reader_platform_interface/zebra_rfid_reader_platform_interface.dart';
 
-/// Connects to Zebra RFID Handheld readers and reads rfid tags asynchronously.
+/// Connects to Zebra Rfid Handheld readers and reads rfid tags asynchronously.
 class ZebraRfidReader {
   static ZebraRfidReaderPlatform get _reader =>
       ZebraRfidReaderPlatform.instance;
 
-  Future<List<RfidReader>> availableRfidReaders() {
-    return _reader.availableRfidReaders();
+  Future<void> init(RfidReaderInitParameters params) {
+    return _reader.init(params);
   }
 
-  Future<bool> connect() {
+  Future<void> connect() {
     return _reader.connect();
   }
 
-  Future<bool> disconnect() {
+  Future<void> disconnect() {
     return _reader.disconnect();
   }
 
-  Stream<HandheldTriggerPressedEvent> onHandheldTriggerPressedEvent() {
-    return _reader.onHandheldTriggerPressedEvent();
+  Stream<ScannerStatusEvent> onScannerStatusEvent() {
+    return _reader.onScannerStatusEvent();
   }
 
-  Stream<HandheldTriggerReleasedEvent> onHandheldTriggerReleasedEvent() {
-    return _reader.onHandheldTriggerReleasedEvent();
-  }
-
-  Stream<RfidTagReadEvent> onRfidTagReadEvent() {
-    return _reader.onRfidTagReadEvent();
-  }
-
-  Stream<ReaderErrorEvent> onReaderError() {
-    return _reader.onReaderError();
+  Stream<RfidReadEvent> onRfidReadEvent() {
+    return _reader.onRfidReadEvent();
   }
 }
