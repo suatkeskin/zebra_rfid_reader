@@ -24,7 +24,7 @@ class ZebraRfidReaderAndroid extends ZebraRfidReaderPlatform {
   }
 
   late final StreamController<ReaderEvent> _readerEventStreamController =
-  _createDeviceEventStreamController();
+      _createDeviceEventStreamController();
 
   StreamController<ReaderEvent> _createDeviceEventStreamController() {
     const MethodChannel channel = MethodChannel("plugins.zebra.com/rfid");

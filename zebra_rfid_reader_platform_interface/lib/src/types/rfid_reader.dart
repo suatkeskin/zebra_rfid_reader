@@ -27,9 +27,9 @@ class RfidReader {
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-          other is RfidReader &&
-              runtimeType == other.runtimeType &&
-              name == other.name;
+      other is RfidReader &&
+          runtimeType == other.runtimeType &&
+          name == other.name;
 
   /// Generates a hash code for this [RfidReader] instance.
   ///

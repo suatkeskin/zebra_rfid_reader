@@ -101,7 +101,7 @@ class _MyPageState extends State<MyPage> {
               }
             },
             child:
-            _connected ? const Text('Disconnect') : const Text('Connect'),
+                _connected ? const Text('Disconnect') : const Text('Connect'),
           ),
         ),
       ],
