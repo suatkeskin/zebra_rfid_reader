@@ -1,10 +1,12 @@
 name: zebra_rfid_reader
 description: Flutter plugin for reading rfid tags.
+repository: https://github.com/suatkeskin/zebra_rfid_reader/tree/main/zebra_rfid_reader
+issue_tracker: https://github.com/suatkeskin/zebra_rfid_reader/issues
 version: 1.0.0
 
 environment:
-  sdk: '>=3.4.3 <4.0.0'
-  flutter: '>=3.22.0'
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: '>=3.0.0'
 
 flutter:
   plugin:
@@ -15,10 +17,8 @@ flutter:
 dependencies:
   flutter:
     sdk: flutter
-  zebra_rfid_reader_android:
-    path: ../zebra_rfid_reader_android
-  zebra_rfid_reader_platform_interface:
-    path: ../zebra_rfid_reader_platform_interface
+  zebra_rfid_reader_android: ^1.0.0
+  zebra_rfid_reader_platform_interface: ^1.0.0
 
 dev_dependencies:
   flutter_lints: ^6.0.0

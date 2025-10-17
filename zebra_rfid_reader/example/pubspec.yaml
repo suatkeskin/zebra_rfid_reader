@@ -1,14 +1,15 @@
 name: zebra_rfid_reader_example
 description: "Demonstrates how to use the zebra_rfid_reader plugin."
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+publish_to: 'none'
 
 environment:
-  sdk: '>=3.4.3 <4.0.0'
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: '>=3.0.0'
 
 dependencies:
   flutter:
     sdk: flutter
-  stream_transform: ^2.1.0
+  stream_transform: ^2.1.1
   zebra_rfid_reader:
     path: ../
 
