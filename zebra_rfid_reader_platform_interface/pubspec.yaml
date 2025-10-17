@@ -1,11 +1,11 @@
 name: zebra_rfid_reader_platform_interface
-description: Android implementation of the zebra_rfid_reader_platform_interface plugin
-repository: https://github.com/suatkeskin/zebra_rfid_reader/zebra_rfid_reader_android
+description: Android implementation of the zebra_rfid_reader_platform_interface plugin.
+repository: https://github.com/suatkeskin/zebra_rfid_reader/tree/main/zebra_rfid_reader_android
 version: 1.0.0
 
 environment:
-  sdk: '>=3.4.3 <4.0.0'
-  flutter: '>=3.22.0'
+  sdk: '>=3.0.0 <4.0.0'
+  flutter: '>=3.0.0'
 
 dependencies:
   flutter:
